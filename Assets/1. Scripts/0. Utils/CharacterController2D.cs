@@ -1,15 +1,8 @@
-using Study.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-
-namespace Study.Utilities
+namespace MyGame.Utils
 {
-    // RequireComponent?
-    // : 아래의 선언된 클래스가 동작하려면 typeof(컴포넌트)의
-    //  컴포넌트가 필요하다고 강제하는 키워드 입니다.
-    //  GameObject에 Attach하게 되면 필요한 컴포넌트를
-    //  자동으로 생성합니다
     [RequireComponent(typeof(Rigidbody2D))]
     public class CharacterController2D : MonoBehaviour
     {
@@ -18,8 +11,6 @@ namespace Study.Utilities
         [Header("Settings")]
         public float        speed               = 2.0f;
         public float        gravity             = -9.81f; 
-        public float        jumpPower           = 8.0f; 
-        public int          maxJumpCount        = 2;
         public float        groundCheckDistance = 0.5f;  
         public float        skinWidth           = 0.02f;
         public LayerMask    collisionLayer;
@@ -27,13 +18,9 @@ namespace Study.Utilities
         private Rigidbody2D rBody;
         private Collider2D  col;
         
-        private int     jumpCount           = 0;
-        private bool    jumpRequested       = false;
         private Vector3 externalDelta       = Vector3.zero;   
         private float   moveInput           = 0.0f;
 
-        // 아래의 두개는 외부에서 조회가 가능해야 합니다. 
-        // 읽기 전용으로 바꿔줍니다
         public float VerticalVelocity { get; private set; } = 0.0f;
         public bool IsGrounded { get; private set; } = false;
 
@@ -53,7 +40,6 @@ namespace Study.Utilities
             IsGrounded = CheckGrounded();
 
             ApplyGravaity();
-            ApplyJump();
 
             Vector3 desireMove =
                 new Vector3(moveInput * speed, VerticalVelocity) * Time.fixedDeltaTime
@@ -84,13 +70,6 @@ namespace Study.Utilities
             externalDelta += delta;
         }
 
-        public bool RequestJump()
-        {
-            if (jumpCount >= maxJumpCount) return false;
-            jumpRequested = true;
-            return true;
-        }
-
         #endregion
 
         #region Private Methods (운동 파이프라인)
@@ -100,7 +79,6 @@ namespace Study.Utilities
             if (IsGrounded && VerticalVelocity <= 0)
             {
                 VerticalVelocity += GROUND_STICK_SPEED;
-                jumpCount = 0;
                 return;
             }
 
@@ -135,18 +113,6 @@ namespace Study.Utilities
             box.size = size;
 
             return box;
-        }
-
-        private void ApplyJump()
-        {
-            if (jumpRequested == false) return;
-            jumpRequested = false;
-
-            if (jumpCount >= maxJumpCount) return;
-
-            VerticalVelocity = jumpPower;
-            jumpCount++;
-            IsGrounded = false; 
         }
 
         private bool CheckGrounded()

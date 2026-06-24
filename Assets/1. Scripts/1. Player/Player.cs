@@ -1,16 +1,17 @@
 using UnityEngine;
 
-public class Player : MonoBehaviour
+namespace MyGame
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class Player : MonoBehaviour
     {
-        
-    }
+        public enum PlayerState
+        {
+            Idle,
+            Move,
+            Crouch,
+            Kill,
+        }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        public static Player LocalPlayer { get; set; }
     }
 }

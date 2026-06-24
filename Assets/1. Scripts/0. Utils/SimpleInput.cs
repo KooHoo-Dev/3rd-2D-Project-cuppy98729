@@ -2,20 +2,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 
-namespace Study.Utilities
+namespace MyGame.Utils
 {
-    // PC 플랫폼에서 사용하는 키보드 마우스 인풋들 묶어놓은
-    // 유틸클래스를 작성해 봅시다.
-    // 목표는 쉽고 직관적으로 사용할 수 있도록 기능들을
-    // 묶어 놓는 것입니다.
-
-    // 아래처럼 작업하는 디자인 패턴을 Wrapper 패턴
-    // 이라고 부릅니다. Wrapping 한다고 합니다
-
-    // SimpleInput 클래스는 어디서든 호출할 수 있게
-    // static(정적, 고정된, 랜드마크) 키워드를 사용하여
-    // 선언 합니다
-
     public static class SimpleInput
     {
         #region 키보드 입력
