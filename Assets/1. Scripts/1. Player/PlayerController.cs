@@ -12,25 +12,28 @@ namespace MyGame
 
         private SpriteRenderer SpriteRenderer { get; set; }
         private CharacterController2D Controller2D { get; set; }
-        private Rigidbody2D Rigidbody2D { get; set; }
 
         private void Awake()
         {
-            SpriteRenderer = GetComponent<SpriteRenderer>();
-            Controller2D = GetComponent<CharacterController2D>();
-            Rigidbody2D = GetComponent<Rigidbody2D>();
+            SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            Controller2D = GetComponentInChildren<CharacterController2D>();
         }
 
         private void Update()
         {
-
+            ApplyMovement();
         }
 
+        /// <summary>
+        /// 키보드 입력을 받아 수평 이동
+        /// </summary>
         private void ApplyMovement()
         {
             float inputVector = SimpleInput.GetAxisHorizontalRaw();
 
-            //if (inputVector > 0)
+            Controller2D.SetMoveInput(inputVector);
         }
+
+
     }
 }
