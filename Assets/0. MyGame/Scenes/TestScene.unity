@@ -119,6 +119,37 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &613005923
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 613005924}
+  m_Layer: 0
+  m_Name: Start Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &613005924
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 613005923}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2097110423}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &721185152
 GameObject:
   m_ObjectHideFlags: 0
@@ -305,6 +336,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1258664789}
   - component: {fileID: 1258664791}
+  - component: {fileID: 1258664793}
   - component: {fileID: 1258664790}
   - component: {fileID: 1258664792}
   m_Layer: 0
@@ -465,6 +497,18 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &1258664793
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1258664788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d0a484fcf0b2c64ebd64c1f514fbd23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MyGame.EnemySightSensor
 --- !u!1 &1391731924
 GameObject:
   m_ObjectHideFlags: 0
@@ -481,7 +525,7 @@ GameObject:
   - component: {fileID: 1391731925}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1050,9 +1094,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41d63f6090727ea40a2832d12c333b48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MyGame.EnemyController
-  detectCountDown: 5
   Target: {fileID: 1391731930}
   moveSpeed: 1
+  detectCountDown: 3
+  baseUpdateTerm: 0.1
+  startPoint: {fileID: 613005924}
   patrolPoint: {fileID: 755224671}
 --- !u!114 &2097110422
 MonoBehaviour:
@@ -1080,6 +1126,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2128636506}
+  - {fileID: 613005924}
   - {fileID: 755224671}
   - {fileID: 1258664789}
   m_Father: {fileID: 0}
