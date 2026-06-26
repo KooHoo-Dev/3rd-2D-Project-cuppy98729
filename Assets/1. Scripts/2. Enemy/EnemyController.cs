@@ -11,17 +11,15 @@ namespace MyGame
         private const float IDLE_WAIT_TIME = 3.0f;
 
         [SerializeField] private float moveSpeed = 1f;
-        [SerializeField] private float baseUpdateTerm = 0.1f;
         [SerializeField] private Transform patrolPoint;
 
-        private bool isPlayerInSight = false;
         private IEnumerator nextStateCoroutine;
 
-        private Enemy Enemy { get; set; }
+        private EnemySightSensor EnemySight { get; set; }
 
         private void Awake()
         {
-            Enemy = GetComponentInChildren<Enemy>();
+            EnemySight = GetComponentInChildren<EnemySightSensor>();
         }
 
         private void OnEnable()
@@ -39,7 +37,11 @@ namespace MyGame
         private IEnumerator IdleStateCoroutine()
         {
             // 탈출 조건 1 : 플레이어가 시야 범위 안에 존재함
-            if (isPlayerInSight == true) nextStateCoroutine = DoubtStateCoroutine();
+            if (EnemySight.isPlayerInSight == true)
+            {
+                Debug.Log($"{EnemySight.isPlayerInSight}");
+                nextStateCoroutine = DoubtStateCoroutine();
+            }
 
             yield break;
         }
@@ -75,7 +77,7 @@ namespace MyGame
                     Debug.Log("카운트 다운 종료");
                     break;
                 }
-                else if ((detectCountDown > 0.0f) && (isPlayerInSight = false))
+                else if ((detectCountDown > 0.0f) && (EnemySight.isPlayerInSight == false))
                 {
                     IdleStateCoroutine();
                     wastedCountDown = 5.0f - detectCountDown;
@@ -92,15 +94,6 @@ namespace MyGame
         private void Move()
         {
 
-        }
-
-        /// <summary>
-        /// 충돌 판정으로 Player가 시야 안에 있는지 검사
-        /// </summary>
-        /// <param name="collider"></param>
-        private void OnTriggerEnter2D(Collider2D collider)
-        {
-            if (collider.gameObject.CompareTag("Player")) isPlayerInSight = true;
         }
     }
 }
