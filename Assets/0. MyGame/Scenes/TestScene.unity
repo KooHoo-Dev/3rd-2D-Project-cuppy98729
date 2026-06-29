@@ -1096,8 +1096,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MyGame.EnemyController
   Target: {fileID: 1391731930}
   moveSpeed: 1
-  detectCountDown: 3
   baseUpdateTerm: 0.1
+  detectCountDown: 3
   startPoint: {fileID: 613005924}
   patrolPoint: {fileID: 755224671}
 --- !u!114 &2097110422
