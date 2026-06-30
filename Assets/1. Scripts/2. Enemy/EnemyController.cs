@@ -1,3 +1,4 @@
+using Study.Utilities;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,14 +9,17 @@ namespace MyGame
     {
         [field: SerializeField] public Transform Target;
 
-        private const float IDLE_WAIT_TIME = 3.0f;
+        private const float IDLE_WAIT_TIME = 2.0f;
+        private const float STOPPING_DISTANCE = 0.1f;
+        private const float ORIGINAL_COUNTDOWN = 2.0f;
 
         [SerializeField] private float moveSpeed = 1f;
         [SerializeField] private float baseUpdateTerm = 0.1f;
-        [SerializeField] private int detectCountDown = 3;
         [SerializeField] private Transform startPoint;
         [SerializeField] private Transform patrolPoint;
 
+        private Vector2 pointA, pointB, goalPoint;
+        private Vector2 originalScale;
         private IEnumerator nextStateCoroutine;
 
         private EnemySightSensor EnemySight { get; set; }
@@ -23,6 +27,12 @@ namespace MyGame
         private void Awake()
         {
             EnemySight = GetComponentInChildren<EnemySightSensor>();
+
+            originalScale = transform.localScale;
+
+            pointA = transform.position;
+            pointB = patrolPoint.position;
+            goalPoint = pointB;
         }
 
         private void OnEnable()
@@ -44,7 +54,7 @@ namespace MyGame
 
             while (true)
             {
-                // 탈출 조건 1 : 3초가 지나면 Patrol 상태로 전환
+                // 탈출 조건 1 : 2초가 지나면 Patrol 상태로 전환
                 if (waitTime > IDLE_WAIT_TIME)
                 {
                     nextStateCoroutine = PatrolStateCoroutine();
@@ -68,34 +78,49 @@ namespace MyGame
             while (true)
             {
                 Vector2 adjustGoalPoint = transform.position;
+                adjustGoalPoint.x = goalPoint.x;
 
                 // 탈출 조건: 플레이어가 시야 범위 안에 존재
                 if (EnemySight.isPlayerInSight == true)
                 {
-
+                    nextStateCoroutine = DoubtStateCoroutine();
+                    yield break;
                 }
 
+                // 목표 지점에 가까워졌다면 목표 지점을 새로 바꿔준다. (pointA <-> pointB)
+                if (transform.IsInRange(adjustGoalPoint, STOPPING_DISTANCE))
+                {
+                    if (goalPoint == pointB) goalPoint = pointA;
+                    nextStateCoroutine = IdleStateCoroutine();
+                    yield break;
+                }
+
+                Move(adjustGoalPoint);
                 yield return null;
             }
         }
+
+        // 확인된 문제
+        // - 2.2 조건은 인식하는 것 같은데 내용 실행이 안됨. Patrol 상태 전환도 안됨.
 
         private IEnumerator DoubtStateCoroutine()
         {
             // 플레이어가 시야 범위 안에 있을 때
 
-            int wastedCountDown = 0;
-            int lastCountDown = 3;
+            float detectCountDown = ORIGINAL_COUNTDOWN;
+            float wastedCountDown = 1.0f;
 
             // 1. 즉시 이동을 멈추고
+            moveSpeed = 0;
 
             // 2. 포착 카운트 다운 시작
-            for (int i = 0; i <= lastCountDown; i++)
+            for (int i = 0; i <= ORIGINAL_COUNTDOWN; i++)
             {
-                Debug.Log($"{lastCountDown - i}");
-                detectCountDown -= i;
+                Debug.Log($"{ORIGINAL_COUNTDOWN - i}");
+                detectCountDown -= 1.0f;
                 yield return new WaitForSeconds(1);
 
-                // 2.1) 만약 플레이어가 3초간 계속 머물렀다면 => 게임오버(*미구현)
+                // 2.1) 만약 플레이어가 2초간 계속 머물렀다면 => 게임오버(*미구현)
                 if (detectCountDown <= 0)
                 {
                     Debug.Log("카운트 다운 종료. 게임 오버");
@@ -103,18 +128,25 @@ namespace MyGame
                 }
 
                 // 2.2) 도중에 나갔다면
-                if ((detectCountDown > 0) && (EnemySight.isPlayerInSight == false))
+                else if ((detectCountDown > 0) && (EnemySight.isPlayerInSight == false))
                 {
+                    Vector2 missingTargetPos = Target.transform.position;
+                    moveSpeed = 2;
+
                     // i) 플레이어가 시야에서 떠나기 전 마지막으로 머물렀던 지점으로 이동
-                    
+                    Move(missingTargetPos);
 
-                    // ii) 머무르며 3배 속도로 소모됐던 카운트 다운 복구
-                    wastedCountDown = 3 - detectCountDown;
-                    yield return new WaitForSeconds(wastedCountDown * 3);
-                    detectCountDown = 3;
+                    // ii) 머무르며 2배 속도로 소모됐던 카운트 다운 복구
+                    if (transform.IsInRange(missingTargetPos, STOPPING_DISTANCE))
+                    {
+                        wastedCountDown = ORIGINAL_COUNTDOWN - detectCountDown;
+                        yield return new WaitForSeconds(wastedCountDown * 2);
+                        detectCountDown = ORIGINAL_COUNTDOWN;
+                    }
 
-                    // iii) 다시 자리로 돌아가
-
+                    // iii) 시작 때의 자리로 돌아가
+                    moveSpeed = 2;
+                    Move(startPoint.position);
 
                     // iiii) Patrol 상태로 전환
                     nextStateCoroutine = PatrolStateCoroutine();
@@ -132,7 +164,7 @@ namespace MyGame
         }
 
         /// <summary>
-        /// 이동 방향
+        /// 캐릭터의 이동 방향과 전방 방향 반환
         /// </summary>
         /// <param name="goalPosition"></param>
         /// <returns></returns>
@@ -140,6 +172,8 @@ namespace MyGame
         {
             float dirToGo = goalPosition.x - transform.position.x;
             float moveDirection = Mathf.Sign(dirToGo);
+
+            transform.localScale = new Vector2(moveDirection * originalScale.x, originalScale.y);
 
             return moveDirection;
         }

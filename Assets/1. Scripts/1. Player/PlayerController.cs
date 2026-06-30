@@ -5,11 +5,6 @@ namespace MyGame
 {
     public class PlayerController : MonoBehaviour
     {
-        // 1. 좌우(A/D) 이동 구현
-        // 2. 
-
-
-
         private SpriteRenderer SpriteRenderer { get; set; }
         private CharacterController2D Controller2D { get; set; }
 
