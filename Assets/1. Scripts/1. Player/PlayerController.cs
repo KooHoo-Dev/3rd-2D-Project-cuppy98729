@@ -28,7 +28,5 @@ namespace MyGame
 
             Controller2D.SetMoveInput(inputVector);
         }
-
-
     }
 }

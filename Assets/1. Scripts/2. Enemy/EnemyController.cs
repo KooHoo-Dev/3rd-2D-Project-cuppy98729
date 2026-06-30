@@ -108,7 +108,6 @@ namespace MyGame
             // 플레이어가 시야 범위 안에 있을 때
 
             float detectCountDown = ORIGINAL_COUNTDOWN;
-            float wastedCountDown = 1.0f;
 
             // 1. 즉시 이동을 멈추고
             moveSpeed = 0;
@@ -116,11 +115,11 @@ namespace MyGame
             // 2. 포착 카운트 다운 시작
             for (int i = 0; i <= ORIGINAL_COUNTDOWN; i++)
             {
-                Debug.Log($"{ORIGINAL_COUNTDOWN - i}");
-                detectCountDown -= 1.0f;
+                Debug.Log($"{detectCountDown - 1}");
                 yield return new WaitForSeconds(1);
+                detectCountDown -= 1.0f;
 
-                // 2.1) 만약 플레이어가 2초간 계속 머물렀다면 => 게임오버(*미구현)
+                // 2.1) 만약 플레이어가 2초간 계속 머물렀다면 => 게임 오버(씬 처음으로 되돌림)
                 if (detectCountDown <= 0)
                 {
                     Debug.Log("카운트 다운 종료. 게임 오버");
@@ -136,11 +135,10 @@ namespace MyGame
                     // i) 플레이어가 시야에서 떠나기 전 마지막으로 머물렀던 지점으로 이동
                     Move(missingTargetPos);
 
-                    // ii) 머무르며 2배 속도로 소모됐던 카운트 다운 복구
+                    // ii) 4초 대기
                     if (transform.IsInRange(missingTargetPos, STOPPING_DISTANCE))
                     {
-                        wastedCountDown = ORIGINAL_COUNTDOWN - detectCountDown;
-                        yield return new WaitForSeconds(wastedCountDown * 2);
+                        yield return new WaitForSeconds(4);
                         detectCountDown = ORIGINAL_COUNTDOWN;
                     }
 
