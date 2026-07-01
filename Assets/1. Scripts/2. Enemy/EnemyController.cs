@@ -9,8 +9,7 @@ namespace MyGame
     {
         [field: SerializeField] public Transform Target;
 
-        private const float IDLE_WAIT_TIME = 2.0f;
-        private const float STOPPING_DISTANCE = 0.1f;
+        private const float IDLE_WAIT_TIME = 3.0f;
         private const float ORIGINAL_COUNTDOWN = 2.0f;
 
         [SerializeField] private float moveSpeed = 1f;
@@ -21,6 +20,8 @@ namespace MyGame
         private Vector2 pointA, pointB, goalPoint;
         private Vector2 originalScale;
         private IEnumerator nextStateCoroutine;
+
+        private float stoppingDistance = 0.1f;
 
         private EnemySightSensor EnemySight { get; set; }
 
@@ -49,6 +50,7 @@ namespace MyGame
 
         private IEnumerator IdleStateCoroutine()
         {
+            Debug.Log($"IdleStateCoroutine");
             float waitTime = 0.0f;
             WaitForSeconds term = new WaitForSeconds(baseUpdateTerm);
 
@@ -75,6 +77,9 @@ namespace MyGame
 
         private IEnumerator PatrolStateCoroutine()
         {
+            Debug.Log($"PatrolStateCoroutine");
+            stoppingDistance = 0.1f;
+
             while (true)
             {
                 Vector2 adjustGoalPoint = transform.position;
@@ -87,10 +92,9 @@ namespace MyGame
                     yield break;
                 }
 
-                // 목표 지점에 가까워졌다면 목표 지점을 새로 바꿔준다. (pointA <-> pointB)
-                if (transform.IsInRange(adjustGoalPoint, STOPPING_DISTANCE))
+                if (transform.IsInRange(adjustGoalPoint, stoppingDistance))
                 {
-                    if (goalPoint == pointB) goalPoint = pointA;
+                    goalPoint = transform.IsSamePosition(pointB, stoppingDistance) ? pointA : pointB;
                     nextStateCoroutine = IdleStateCoroutine();
                     yield break;
                 }
@@ -100,22 +104,21 @@ namespace MyGame
             }
         }
 
-        // 확인된 문제
-        // - 2.2 조건은 인식하는 것 같은데 내용 실행이 안됨. Patrol 상태 전환도 안됨.
-
         private IEnumerator DoubtStateCoroutine()
         {
+            Debug.Log($"DoubtStateCoroutine");
+            stoppingDistance = 0.3f;
             // 플레이어가 시야 범위 안에 있을 때
-
             float detectCountDown = ORIGINAL_COUNTDOWN;
-
+            
             // 1. 즉시 이동을 멈추고
             moveSpeed = 0;
+            Vector2 missingTargetPos = Target.transform.position;
 
             // 2. 포착 카운트 다운 시작
-            for (int i = 0; i <= ORIGINAL_COUNTDOWN; i++)
+            for (int i = 0; i < ORIGINAL_COUNTDOWN; i++)
             {
-                Debug.Log($"{detectCountDown - 1}");
+                Debug.Log($"{detectCountDown}");
                 yield return new WaitForSeconds(1);
                 detectCountDown -= 1.0f;
 
@@ -129,21 +132,34 @@ namespace MyGame
                 // 2.2) 도중에 나갔다면
                 else if ((detectCountDown > 0) && (EnemySight.isPlayerInSight == false))
                 {
-                    Vector2 missingTargetPos = Target.transform.position;
+                    Debug.Log("Searching");
                     moveSpeed = 2;
 
                     // i) 플레이어가 시야에서 떠나기 전 마지막으로 머물렀던 지점으로 이동
-                    Move(missingTargetPos);
-
-                    // ii) 4초 대기
-                    if (transform.IsInRange(missingTargetPos, STOPPING_DISTANCE))
+                    while (Vector2.Distance(transform.position, missingTargetPos) > stoppingDistance)
                     {
-                        yield return new WaitForSeconds(4);
-                        detectCountDown = ORIGINAL_COUNTDOWN;
+                        Move(missingTargetPos);
+                        yield return null;
                     }
 
+                    // ii) 4초 대기
+                    for (int j = 0; j < 4; j++)
+                    {
+                        // * 만약 대기 중에 플레이어가 다시 포착되면 Doubt 상태를 처음부터 다시 시작
+                        if (EnemySight.isPlayerInSight == true)
+                        {
+                            nextStateCoroutine = DoubtStateCoroutine();
+                            yield break;
+                        }
+                        else
+                        {
+                            Debug.Log($"{4 - j}");
+                            yield return new WaitForSeconds(1);
+                        }
+                    }
+                    detectCountDown = ORIGINAL_COUNTDOWN;
+
                     // iii) 시작 때의 자리로 돌아가
-                    moveSpeed = 2;
                     Move(startPoint.position);
 
                     // iiii) Patrol 상태로 전환
