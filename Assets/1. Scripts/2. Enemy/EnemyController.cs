@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 
 namespace MyGame
 {
+
     public class EnemyController : MonoBehaviour
     {
         [field: SerializeField] public Transform Target;
@@ -23,11 +24,14 @@ namespace MyGame
 
         private float stoppingDistance = 0.1f;
 
+        private Player Player { get; set; }
         private EnemySightSensor EnemySight { get; set; }
 
         private void Awake()
         {
             EnemySight = GetComponentInChildren<EnemySightSensor>();
+
+            Player = Object.FindFirstObjectByType<Player>();
 
             originalScale = transform.localScale;
 
